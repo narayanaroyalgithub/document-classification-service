@@ -71,14 +71,3 @@ This mimics how a real backend service would auto‑tag operational documents fo
     - `GET /health` – health check (model loaded status)
     - `POST /classify` – file upload → text extraction → classification → JSON response
 
----
-
-## 📂 Project Structure
-
-```text
-document-classification-service/
-├── app.py               # FastAPI app (API endpoints)
-├── classifier.py        # Zero-shot classifier wrapper (5 tags)
-├── text_extractor.py    # TXT/PDF text extraction
-├── requirements.txt     # Python dependencies
-└── README.md            # This file
