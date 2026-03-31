@@ -71,3 +71,26 @@ This mimics how a real backend service would auto‑tag operational documents fo
     - `GET /health` – health check (model loaded status)
     - `POST /classify` – file upload → text extraction → classification → JSON response
 
+🌐 API Endpoints & Usage
+
+Once the service is running locally, the main URLs are:
+
+- Health check:  
+  `GET http://localhost:8000/health`
+
+- Classification endpoint (file upload):  
+  `POST http://localhost:8000/classify`
+
+- Interactive API docs (Swagger UI):  
+  `http://localhost:8000/docs`
+
+- Alternative docs (ReDoc):  
+  `http://localhost:8000/redoc`
+
+Example `curl` request:
+
+```bash
+curl -X POST "http://localhost:8000/classify" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@sample_document.pdf"
+
