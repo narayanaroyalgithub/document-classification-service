@@ -1,11 +1,4 @@
-
----
-
-## 4. `classifier.py`
-
-```python
-import torch
-from transformers import AutoTokenizer, AutoModelForSequenceClassification
+from transformers import pipeline
 from typing import Dict, List
 import logging
 
@@ -14,48 +7,41 @@ logger = logging.getLogger(__name__)
 
 class DocumentClassifier:
     """
-    Simple wrapper around a HuggingFace Transformer model.
+    Document-type classifier using a zero-shot classification pipeline.
 
-    For demo purposes, we use a sentiment model:
-    - 'NEGATIVE'
-    - 'POSITIVE'
-
-    In a real project, you'd fine-tune on your own labels,
-    e.g. ["invoice", "contract", "report", ...].
+    It classifies a document into one of 5 tags:
+    - Invoice
+    - Insurance Claim
+    - Bank / Billing Statement
+    - Contract / Agreement
+    - General Report
     """
 
-    def __init__(
-        self,
-        model_name: str = "distilbert-base-uncased-finetuned-sst-2-english",
-        max_length: int = 512,
-    ):
-        self.model_name = model_name
-        self.max_length = max_length
-
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.tokenizer = None
-        self.model = None
-        self.labels: List[str] = []  # filled after model load
+    def __init__(self):
+        # Define the label space
+        self.labels: List[str] = [
+            "Invoice",
+            "Insurance Claim",
+            "Bank or Billing Statement",
+            "Contract or Agreement",
+            "General Report",
+        ]
+        self._pipeline = None
         self._loaded = False
 
     def load(self):
-        """Load tokenizer and model into memory."""
+        """Load the zero-shot classification pipeline."""
         if self._loaded:
             return
 
-        logger.info(f"Loading tokenizer and model: {self.model_name}")
-        self.tokenizer = AutoTokenizer.from_pretrained(self.model_name)
-        self.model = AutoModelForSequenceClassification.from_pretrained(self.model_name)
-        self.model.to(self.device)
-        self.model.eval()
-
-        # HuggingFace stores label mapping in config.id2label
-        id2label = self.model.config.id2label
-        # Ensure order by id
-        self.labels = [id2label[i] for i in sorted(id2label.keys())]
-
+        logger.info("Loading zero-shot classification pipeline (BART MNLI)...")
+        # This model is good for zero-shot classification
+        self._pipeline = pipeline(
+            "zero-shot-classification",
+            model="facebook/bart-large-mnli",
+        )
         self._loaded = True
-        logger.info("Model loaded successfully.")
+        logger.info("Zero-shot pipeline loaded successfully.")
 
     def is_loaded(self) -> bool:
         return self._loaded
@@ -65,7 +51,7 @@ class DocumentClassifier:
 
     def predict(self, text: str) -> Dict:
         """
-        Run inference on a single text string.
+        Classify the input text into one of the 5 labels.
 
         Returns:
             {
@@ -74,40 +60,32 @@ class DocumentClassifier:
                 "all_scores": {label: prob}
             }
         """
-        if not self._loaded:
-            raise RuntimeError("Model not loaded. Call load() first.")
+        if not self._loaded or self._pipeline is None:
+            raise RuntimeError("Model pipeline not loaded. Call load() first.")
 
         if not text or not text.strip():
             return {
-                "predicted_label": "UNKNOWN",
+                "predicted_label": "Unknown",
                 "confidence": 0.0,
                 "all_scores": {lbl: 0.0 for lbl in self.labels},
             }
 
-        # Tokenize
-        encodings = self.tokenizer(
+        result = self._pipeline(
             text,
-            truncation=True,
-            padding=True,
-            max_length=self.max_length,
-            return_tensors="pt",
-        ).to(self.device)
+            candidate_labels=self.labels,
+            multi_label=False,  # choose the single best label
+        )
 
-        with torch.no_grad():
-            outputs = self.model(**encodings)
-            logits = outputs.logits
-            probs = torch.nn.functional.softmax(logits, dim=-1)[0]
-
-        # top prediction
-        confidence, pred_id = torch.max(probs, dim=0)
-        pred_label = self.labels[pred_id.item()]
+        # result["labels"] and result["scores"] are sorted by score desc
+        top_label = result["labels"][0]
+        top_score = float(result["scores"][0])
 
         all_scores = {
-            self.labels[i]: float(probs[i].cpu().item()) for i in range(len(self.labels))
+            label: float(score) for label, score in zip(result["labels"], result["scores"])
         }
 
         return {
-            "predicted_label": pred_label,
-            "confidence": float(confidence.cpu().item()),
+            "predicted_label": top_label,
+            "confidence": top_score,
             "all_scores": all_scores,
         }
