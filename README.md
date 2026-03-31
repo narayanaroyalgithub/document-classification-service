@@ -87,10 +87,25 @@ Once the service is running locally, the main URLs are:
 - Alternative docs (ReDoc):  
   `http://localhost:8000/redoc`
 
-Example `curl` request:
+### Example deployment (Cloud Run)
 
-```bash
-curl -X POST "http://localhost:8000/classify" \
-  -H "Content-Type: multipart/form-data" \
-  -F "file=@sample_document.pdf"
+> Note: This is an example of how the service **could** be deployed to Google Cloud Run.  
+> The URL below is illustrative; replace it with your own if you deploy.
+
+After deployment on Cloud Run, the service would be available at a URL like:
+
+- Base URL (example):  
+  `https://document-classification-service-xxxxx-uc.a.run.app`
+
+Endpoints:
+
+- Health:  
+  `GET https://document-classification-service-xxxxx-uc.a.run.app/health`
+
+- Classify:  
+  `POST https://document-classification-service-xxxxx-uc.a.run.app/classify`
+
+- Docs (Swagger UI):  
+  `https://document-classification-service-xxxxx-uc.a.run.app/docs`
+
 
