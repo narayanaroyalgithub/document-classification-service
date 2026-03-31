@@ -1,18 +1,27 @@
-# Document Classification API
+# Document Classification Service
 
-A production-ready REST API for automated document classification using fine-tuned NLP models. Built with FastAPI and PyTorch, designed for scalable healthcare and enterprise workflows.
+Simple document classification API built with **FastAPI** and **Transformers (BERT / DistilBERT)**.
 
-## Features
-- **RESTful API**: Fast and asynchronous endpoints built with FastAPI.
-- **NLP Classification**: Uses transformer-based models (BERT architecture) for high-accuracy text classification.
-- **Production-Ready**: Includes logging, error handling, and modular architecture.
-- **Multi-Format Extraction**: Text extraction pipelines for PDF and raw text.
+It accepts `.txt` and `.pdf` files, extracts text, runs a pre-trained BERT model, and returns:
+- top predicted label
+- confidence score
+- all label probabilities
+
+This is a learning / demo project to showcase:
+- building an ML-backed REST API
+- integrating a Transformer model
+- basic document preprocessing
 
 ## Tech Stack
-- **Backend**: Python, FastAPI, Uvicorn
-- **ML/NLP**: PyTorch, HuggingFace Transformers, Scikit-learn
-- **Data Processing**: PyPDF2, Pandas
 
-## API Endpoints
-- `GET /health` - System health and model load status
-- `POST /classify` - Upload a document for category prediction
+- Python
+- FastAPI (API)
+- Uvicorn (ASGI server)
+- HuggingFace Transformers (DistilBERT)
+- PyTorch
+- PyPDF2 (PDF text extraction)
+
+## Install
+
+```bash
+pip install -r requirements.txt
