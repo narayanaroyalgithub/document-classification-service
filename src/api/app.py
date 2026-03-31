@@ -12,7 +12,7 @@ logger = logging.getLogger("doc-class-api")
 
 app = FastAPI(
     title="Document Classification Service",
-    description="Simple FastAPI + BERT document classification demo.",
+    description="Classifies documents into 5 types: Invoice, Insurance Claim, Bank/Billing Statement, Contract/Agreement, General Report.",
     version="1.0.0",
 )
 
@@ -34,7 +34,7 @@ class ClassificationResponse(BaseModel):
 
 @app.on_event("startup")
 def on_startup():
-    logger.info("Starting up, loading model...")
+    logger.info("Starting up, loading zero-shot classifier...")
     classifier.load()
     logger.info("Startup complete.")
 
